@@ -1,0 +1,5 @@
+br/com/nakatec/miniautorizador/MiniAutorizadorApplication.class
+br/com/nakatec/miniautorizador/service/CartaoService.class
+br/com/nakatec/miniautorizador/model/Cartao.class
+br/com/nakatec/miniautorizador/dto/CartaoDto.class
+br/com/nakatec/miniautorizador/repository/CartaoRepository.class
