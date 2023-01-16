@@ -1,5 +1,11 @@
 /Users/eduardonakashoji/projetos/recrutamento/mini-autorizador/src/main/java/br/com/nakatec/miniautorizador/service/CartaoService.java
 /Users/eduardonakashoji/projetos/recrutamento/mini-autorizador/src/main/java/br/com/nakatec/miniautorizador/MiniAutorizadorApplication.java
 /Users/eduardonakashoji/projetos/recrutamento/mini-autorizador/src/main/java/br/com/nakatec/miniautorizador/dto/CartaoDto.java
+/Users/eduardonakashoji/projetos/recrutamento/mini-autorizador/src/main/java/br/com/nakatec/miniautorizador/model/Transacao.java
 /Users/eduardonakashoji/projetos/recrutamento/mini-autorizador/src/main/java/br/com/nakatec/miniautorizador/model/Cartao.java
+/Users/eduardonakashoji/projetos/recrutamento/mini-autorizador/src/main/java/br/com/nakatec/miniautorizador/controller/CartaoController.java
+/Users/eduardonakashoji/projetos/recrutamento/mini-autorizador/src/main/java/br/com/nakatec/miniautorizador/service/TransacaoService.java
 /Users/eduardonakashoji/projetos/recrutamento/mini-autorizador/src/main/java/br/com/nakatec/miniautorizador/repository/CartaoRepository.java
+/Users/eduardonakashoji/projetos/recrutamento/mini-autorizador/src/main/java/br/com/nakatec/miniautorizador/dto/TransacaoDto.java
+/Users/eduardonakashoji/projetos/recrutamento/mini-autorizador/src/main/java/br/com/nakatec/miniautorizador/config/Configuracao.java
+/Users/eduardonakashoji/projetos/recrutamento/mini-autorizador/src/main/java/br/com/nakatec/miniautorizador/controller/TransacaoController.java

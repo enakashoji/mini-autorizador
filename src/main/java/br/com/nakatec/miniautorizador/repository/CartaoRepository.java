@@ -9,6 +9,9 @@ import java.util.Optional;
 
 public interface CartaoRepository extends JpaRepository<Cartao, Long> {
 
-    @Query("from Cartao where numeroCartao = :numeroCartao")
+    @Query("FROM Cartao WHERE numeroCartao = :numeroCartao")
     public Optional<Cartao> findByNumeroCartao(@Param("numeroCartao") String numeroCartao);
+
+    @Query("FROM Cartao WHERE numeroCartao = :numeroCartao AND senha = :senha")
+    public Optional<Cartao> validaSenha(@Param("numeroCartao") String numeroCartao, @Param("senha") String senha);
 }

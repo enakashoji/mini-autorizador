@@ -1,57 +1,141 @@
 package br.com.nakatec.miniautorizador.service;
 
 import br.com.nakatec.miniautorizador.dto.CartaoDto;
+import br.com.nakatec.miniautorizador.dto.TransacaoDto;
 import br.com.nakatec.miniautorizador.model.Cartao;
 import br.com.nakatec.miniautorizador.repository.CartaoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@ExtendWith(MockitoExtension.class)
 public class CartaoServiceTest {
 
+    @Mock(answer = Answers.RETURNS_SMART_NULLS)
+    private CartaoRepository repository;
+
     @Mock
-    private CartaoRepository cartaoRepository;
+    private ModelMapper modelMapper;
 
     private CartaoService service;
+
+    private CartaoDto cartaoDtoMock;
+
+    private Cartao cartaoMock;
 
     @BeforeEach
     void beforeEach() {
         MockitoAnnotations.openMocks(this);
-        Cartao cartaoMock = new Cartao(1L, "1234567890987654", "1234", new BigDecimal(500));
-        service = new CartaoService(cartaoRepository);
-        when(cartaoRepository.findByNumeroCartao("1234")).thenReturn(Optional.of(cartaoMock));
-        when(cartaoRepository.save(cartaoMock)).thenReturn(cartaoMock);
+        service = new CartaoService(repository, modelMapper);
+
+        cartaoMock = new Cartao(1L, "1234567890987654", "1234", new BigDecimal(500));
+
+        cartaoDtoMock = new CartaoDto();
+        cartaoDtoMock.setNumeroCartao("1234567890987654");
+        cartaoDtoMock.setSenha("1234");
     }
 
     @Test
-    void deveCreditarQuinhentosAoCriarCartao(){
-        CartaoDto cartaoMock = new CartaoDto();
-        cartaoMock.setNumeroCartao("1234567890987654");
-        cartaoMock.setSenha("1234");
-        CartaoDto cartao = service.criarCartao(cartaoMock);
-        assertEquals(cartao.getSaldo(), new BigDecimal(500));
+    void deveCreditarQuinhentosAoCriarCartao() {
+        when(modelMapper.map(cartaoDtoMock, Cartao.class)).thenReturn(cartaoMock);
+        when(repository.save(cartaoMock)).thenReturn(cartaoMock);
+        Cartao cartao = service.criarCartao(cartaoDtoMock);
+        assertEquals(cartao.getSaldo(), cartaoMock.getSaldo());
     }
 
-//    * a criação de cartões (todo cartão deverá ser criado com um saldo inicial de R$500,00)
-//    * a obtenção de saldo do cartão
-//    * a autorização de transações realizadas usando os cartões previamente criados como meio de pagamento
-//
-//    Uma transação pode ser autorizada se:
-//    * o cartão existir
-//    * a senha do cartão for a correta
-//    * o cartão possuir saldo disponível
-//    * criação de um cartão
-//    * verificação do saldo do cartão recém-criado
-//    * realização de diversas transações, verificando-se o saldo em seguida, até que o sistema retorne informação de saldo insuficiente
-//    * realização de uma transação com senha inválida
-//    * realização de uma transação com cartão inexistente
+    @Test
+    void obterSaldoCartao() {
+        when(repository.findByNumeroCartao("1234567890987654")).thenReturn(Optional.ofNullable(cartaoMock));
+        assertEquals(service.obterSaldo("1234567890987654"), cartaoMock.getSaldo());
+    }
+
+    @Test
+    void deveVerificarSeOCartaoExiste() {
+        when(repository.findByNumeroCartao("1234567890987651")).thenReturn(Optional.ofNullable(null));
+        TransacaoDto transacaoDto = new TransacaoDto();
+
+        transacaoDto.setNumeroCartao("1234567890987651");
+        transacaoDto.setSenhaCartao("1234");
+        transacaoDto.setValor(BigDecimal.ONE);
+
+        try {
+            Cartao cartao = service.registrarTransacao(transacaoDto);
+            fail();
+        } catch (Exception e) {
+            assertEquals(e.getMessage(), "CARTAO_INEXISTENTE");
+        }
+    }
+
+    @Test
+    void deveVerificarSeASenhaEstaCorreta() {
+        when(repository.findByNumeroCartao("1234567890987654")).thenReturn(Optional.ofNullable(cartaoMock));
+        TransacaoDto transacaoDto = new TransacaoDto();
+
+        transacaoDto.setNumeroCartao("1234567890987654");
+        transacaoDto.setSenhaCartao("123");
+        transacaoDto.setValor(BigDecimal.ONE);
+
+        try {
+            Cartao cartao = service.registrarTransacao(transacaoDto);
+            fail();
+        } catch (Exception e) {
+            assertEquals(e.getMessage(), "SENHA_INVALIDA");
+        }
+    }
+
+    @Test
+    void deveVerificarSeOCartaoPossuiSaldo() {
+        when(repository.findByNumeroCartao("1234567890987654")).thenReturn(Optional.ofNullable(cartaoMock));
+        TransacaoDto transacaoDto = new TransacaoDto();
+
+        transacaoDto.setNumeroCartao("1234567890987654");
+        transacaoDto.setSenhaCartao("1234");
+        transacaoDto.setValor(new BigDecimal(1000.00));
+
+        try {
+            Cartao cartao = service.registrarTransacao(transacaoDto);
+            fail();
+        } catch (Exception e) {
+            assertEquals(e.getMessage(), "SALDO_INSUFICIENTE");
+        }
+    }
+
+    @Test
+    void deveConsumirOSaldoAteOLimite() {
+        when(repository.findByNumeroCartao("1234567890987654")).thenReturn(Optional.ofNullable(cartaoMock));
+        TransacaoDto transacaoDto = new TransacaoDto();
+
+        transacaoDto.setNumeroCartao("1234567890987654");
+        transacaoDto.setSenhaCartao("1234");
+        transacaoDto.setValor(new BigDecimal(299.00));
+
+        TransacaoDto transacaoDto2 = new TransacaoDto();
+
+        transacaoDto2.setNumeroCartao("1234567890987654");
+        transacaoDto2.setSenhaCartao("1234");
+        transacaoDto2.setValor(new BigDecimal(201.01));
+
+        try {
+            Cartao cartao = service.registrarTransacao(transacaoDto);
+            cartao = service.registrarTransacao(transacaoDto2);
+            fail();
+        } catch (Exception e) {
+            assertEquals(e.getMessage(), "SALDO_INSUFICIENTE");
+        }
+    }
+
 }
